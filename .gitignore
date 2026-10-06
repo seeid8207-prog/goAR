@@ -1,0 +1,11 @@
+node_modules/
+.expo/
+android/
+ios/
+dist/
+.navtest-build/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
