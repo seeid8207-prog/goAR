@@ -11,7 +11,8 @@
     "test:navigation": "tsc -p tsconfig.navtest.json && node .navtest-build/lib/routeProgress.test.js",
     "api": "node server/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "field:android": "bash scripts/field-test-android.sh"
+    "field:android": "bash scripts/field-test-android.sh",
+    "field:ios": "bash scripts/field-test-ios.sh"
   },
   "dependencies": {
     "expo": "~57.0.17",
