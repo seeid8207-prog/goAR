@@ -18,9 +18,14 @@ function emit(
 ){
   const position=anchor?.position;
   if(!Array.isArray(position)||position.length<3)return;
+  const rotation=Array.isArray(anchor?.rotation)&&anchor.rotation.length>=3
+    ? {x:Number(anchor.rotation[0]),y:Number(anchor.rotation[1]),z:Number(anchor.rotation[2])}
+    : undefined;
+
   onObserved?.({
     checkpointId,
     worldPosition:{x:Number(position[0]),y:Number(position[1]),z:Number(position[2])},
+    worldRotation:rotation,
     confidence,
     observedAt:new Date().toISOString(),
   });
