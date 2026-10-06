@@ -6,6 +6,7 @@ export function createPostgresStore(connectionString){
 
   return {
     async close(){await pool.end();},
+    async ping(){await pool.query('SELECT 1');return true;},
 
     async getTicket(id){
       const {rows}=await pool.query(
