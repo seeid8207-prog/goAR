@@ -11,6 +11,8 @@ export type MappingPoint = {
   section?: string;
   row?: string;
   seat?: string;
+  confidence?: number;
+  hitType?: string;
 };
 
 export type SeatRowDraft = {
