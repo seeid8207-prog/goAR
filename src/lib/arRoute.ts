@@ -6,13 +6,13 @@ import { distanceMeters, shortestAngle } from './venueMath';
 export type ARRouteOptions = {
   maxVisibleWaypoints?: number;
   maxRenderDistanceMeters?: number;
-  floorY?: number;
+  floorHeightMeters?: number;
 };
 
 const DEFAULTS: Required<ARRouteOptions> = {
   maxVisibleWaypoints: 5,
   maxRenderDistanceMeters: 35,
-  floorY: -1.2,
+  floorHeightMeters: 3.2,
 };
 
 function waypointKind(step: RouteStep, previousBearing?: number): ARWaypointKind {
@@ -29,10 +29,14 @@ function waypointKind(step: RouteStep, previousBearing?: number): ARWaypointKind
   return delta > 0 ? 'turn-right' : 'turn-left';
 }
 
-function venuePointToAR(point: VenuePoint, floorY: number) {
-  // Venue graph uses x/y on the floor plane. AR scene convention is x/z on the
-  // floor with positive venue Y mapped to negative AR Z (forward).
-  return { x: point.x, y: floorY, z: -point.y };
+function venuePointToSpatial(point: VenuePoint, floorHeightMeters: number) {
+  // Navigation graph coordinates are x/y on the floor plan. Persistent AR venue
+  // coordinates are x/y/z, where Y is vertical and graph Y maps to venue Z.
+  return {
+    x: point.x,
+    y: point.floor * floorHeightMeters,
+    z: point.y,
+  };
 }
 
 export function buildARRouteOverlay(
@@ -75,7 +79,7 @@ export function buildARRouteOverlay(
       label: step.to.label,
       kind: waypointKind(step, previousBearing),
       floor: step.to.floor,
-      venuePosition: venuePointToAR(step.to, config.floorY),
+      venuePosition: venuePointToSpatial(step.to, config.floorHeightMeters),
       distanceFromUserMeters: distance,
       isActive: index === startIndex,
       sequence: index - startIndex,
