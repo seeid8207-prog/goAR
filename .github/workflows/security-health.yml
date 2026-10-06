@@ -1,0 +1,27 @@
+name: GoAR Security Health
+
+on:
+  pull_request:
+    paths:
+      - "package.json"
+      - "package-lock.json"
+      - "app.json"
+      - "eas.json"
+      - ".github/workflows/**"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - name: Expo project health
+        run: npx expo-doctor
+      - name: Production dependency critical audit
+        run: npm audit --omit=dev --audit-level=critical
