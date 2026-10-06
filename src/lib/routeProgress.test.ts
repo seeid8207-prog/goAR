@@ -6,6 +6,8 @@ import { calculateRouteProgress } from './routeProgress';
 import { rerouteFromPosition } from './reroute';
 import { buildARRouteOverlay } from './arRoute';
 import { NavigationSession } from './navigationSession';
+import { buildReferenceFrameFromThreePoints } from './calibration';
+import { venueToWorld, worldToVenue } from './referenceFrame';
 import type { RouteEdge, VenuePoint } from '../types/navigation';
 
 const points: VenuePoint[] = [
@@ -70,4 +72,17 @@ const arrivedOverlay = buildARRouteOverlay({ x: 25.2, y: 20.2, floor: 1 }, steps
 assertEqual(arrivedOverlay.instruction, 'You have arrived', 'arrival overlay');
 assertEqual(arrivedOverlay.waypoints.length, 0, 'arrival hides route markers');
 
-console.log('route progress and AR overlay tests passed');
+const frame = buildReferenceFrameFromThreePoints({
+  venueId: 'demo',
+  checkpointId: 'cp',
+  origin: { x: 10, y: 1, z: -3 },
+  positiveX: { x: 11, y: 1, z: -3 },
+  positiveZ: { x: 10, y: 1, z: -2 },
+});
+const venuePoint = worldToVenue({ x: 12, y: 2, z: 1 }, frame);
+const roundTrip = venueToWorld(venuePoint, frame);
+assertEqual(Math.abs(roundTrip.x - 12) < 1e-6, true, 'frame round trip x');
+assertEqual(Math.abs(roundTrip.y - 2) < 1e-6, true, 'frame round trip y');
+assertEqual(Math.abs(roundTrip.z - 1) < 1e-6, true, 'frame round trip z');
+
+console.log('route progress, AR overlay, and calibration tests passed');
