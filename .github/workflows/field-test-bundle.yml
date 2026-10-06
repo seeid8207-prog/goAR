@@ -1,0 +1,31 @@
+name: GoAR Field Test Bundle
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "assets/checkpoints/**"
+      - "docs/FIELD_TEST*.md"
+      - "docs/ANDROID_FIELD_TEST.md"
+      - "docs/CHECKPOINT_MARKERS.md"
+      - "scripts/build-field-test-bundle.mjs"
+      - ".env.example"
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build field-test bundle
+        run: node scripts/build-field-test-bundle.mjs
+      - name: Upload field-test bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: goar-field-test-${{ github.sha }}
+          path: dist/field-test-bundle
+          if-no-files-found: error
+          retention-days: 30
