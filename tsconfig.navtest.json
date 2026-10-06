@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": ".navtest-build",
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/types/navigation.ts",
+    "src/lib/venueMath.ts",
+    "src/lib/routeGraph.ts",
+    "src/lib/routeProgress.ts",
+    "src/lib/reroute.ts",
+    "src/lib/routeProgress.test.ts"
+  ]
+}
