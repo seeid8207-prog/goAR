@@ -11,6 +11,7 @@ import { venueToWorld, worldToVenue } from './referenceFrame';
 import { generateSeatRow } from './seatGenerator';
 import { resolveTicketToSeat } from './ticketResolver';
 import { can } from './accessControl';
+import { appendDiagnosticSample, createDiagnosticSession, summarizeDiagnosticSession } from './diagnostics';
 import type { SeatTarget } from '../types/navigation';
 import type { EventTicket } from '../types/domain';
 import type { RouteEdge, VenuePoint } from '../types/navigation';
@@ -110,5 +111,20 @@ assertEqual(resolveTicketToSeat(ticket,[ticketSeat])?.id,'s','ticket resolves to
 assertEqual(can('attendee','map-venue'),false,'attendee cannot map venue');
 assertEqual(can('mapper','map-venue'),true,'mapper can map venue');
 assertEqual(can('venue-admin','publish-venue'),true,'admin can publish venue');
+
+let diagnostics=createDiagnosticSession('demo');
+diagnostics=appendDiagnosticSample(diagnostics,{
+  venueId:'demo',floor:0,world:{x:0,y:0,z:0},venue:{x:0,y:0,z:0},
+  distanceToRouteMeters:1,distanceToNextWaypointMeters:4,remainingDistanceMeters:10,rerouteCount:0
+});
+diagnostics=appendDiagnosticSample(diagnostics,{
+  venueId:'demo',floor:0,world:{x:1,y:0,z:0},venue:{x:1,y:0,z:0},
+  distanceToRouteMeters:3,distanceToNextWaypointMeters:3,remainingDistanceMeters:9,rerouteCount:1
+});
+const diagnosticSummary=summarizeDiagnosticSession(diagnostics);
+assertEqual(diagnosticSummary.samples,2,'diagnostic sample count');
+assertEqual(diagnosticSummary.meanDistanceToRouteMeters,2,'diagnostic mean deviation');
+assertEqual(diagnosticSummary.maxDistanceToRouteMeters,3,'diagnostic max deviation');
+assertEqual(diagnosticSummary.reroutes,1,'diagnostic reroute count');
 
 console.log('GoAR core tests passed');
