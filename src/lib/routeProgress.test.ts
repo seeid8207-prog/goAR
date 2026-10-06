@@ -61,7 +61,7 @@ session.start('a');
 const sessionOnRoute = session.update({ x: 2, y: 0.1, floor: 0 }, 1000);
 assertEqual(sessionOnRoute.rerouted, false, 'no reroute while on route');
 
-const sessionOffRoute = session.update({ x: 20, y: 8, floor: 0 }, 5000);
+const sessionOffRoute = session.update({ x: 30, y: 10, floor: 0 }, 5000);
 assertEqual(sessionOffRoute.rerouted, true, 'reroute on deviation');
 assertEqual(sessionOffRoute.route[0].id, 'd', 'reroute starts from nearest graph node');
 assertEqual(sessionOffRoute.overlay.waypoints[0]?.stepId, sessionOffRoute.steps[0]?.id, 'overlay uses replaced route');
