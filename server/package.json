@@ -1,0 +1,12 @@
+{
+  "name": "goar-api",
+  "version": "0.12.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  }
+}
