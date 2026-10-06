@@ -5,7 +5,8 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": ".navtest-build",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "rootDir": "./src"
   },
   "include": [
     "src/types/navigation.ts",
