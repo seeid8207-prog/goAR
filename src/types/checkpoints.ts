@@ -1,4 +1,4 @@
-import type { ARPosition, PersistentReferenceFrame } from './arMapping';
+import type { ARPosition, ARRotation, PersistentReferenceFrame } from './arMapping';
 
 export type VenueCheckpointDefinition = {
   id: string;
@@ -7,12 +7,14 @@ export type VenueCheckpointDefinition = {
   floor: number;
   qrValue: string;
   venuePosition: ARPosition;
+  venueYawDeg?: number;
   markerWidthMeters?: number;
 };
 
 export type ObservedCheckpointPose = {
   checkpointId: string;
   worldPosition: ARPosition;
+  worldRotation?: ARRotation;
   confidence: number;
   observedAt: string;
 };
@@ -22,6 +24,7 @@ export type FrameCorrection = {
   previousOrigin: ARPosition;
   correctedOrigin: ARPosition;
   driftMeters: number;
+  yawDriftDeg: number;
   confidence: number;
   frame: PersistentReferenceFrame;
 };

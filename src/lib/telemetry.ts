@@ -2,6 +2,7 @@ export type TelemetryEvent=
   | {name:'route_started';venueId:string;destinationId:string}
   | {name:'reroute';venueId:string;distanceFromRoute:number}
   | {name:'checkpoint_localized';venueId:string;checkpointId:string;method:string}
+  | {name:'checkpoint_corrected';venueId:string;checkpointId:string;driftMeters:number;confidence:number}
   | {name:'arrived';venueId:string;destinationId:string}
   | {name:'mapping_point_saved';venueId:string;kind:string};
 

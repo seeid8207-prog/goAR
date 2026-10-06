@@ -7,7 +7,9 @@ import {
   ViroPolyline,
   ViroText,
 } from '@reactvision/react-viro';
+import CheckpointImageMarkers from './CheckpointImageMarkers';
 import type { WorldARWaypoint } from '../lib/arRouteWorld';
+import type { ObservedCheckpointPose } from '../types/checkpoints';
 
 type CameraTransform = {
   position: [number, number, number];
@@ -22,6 +24,7 @@ type SceneProps = {
       waypoints?: WorldARWaypoint[];
       onTrackingState?: (state: string) => void;
       onCameraTransform?: (transform: CameraTransform) => void;
+      onCheckpointObserved?: (observation: ObservedCheckpointPose) => void;
     };
   };
 };
@@ -61,6 +64,12 @@ export default function RouteARScene({ sceneNavigator }: SceneProps) {
       }}
     >
       <ViroAmbientLight color="#ffffff" intensity={350} />
+
+      <CheckpointImageMarkers
+        onObserved={(observation) =>
+          sceneNavigator?.viroAppProps?.onCheckpointObserved?.(observation)
+        }
+      />
 
       {linePoints.length > 1 && (
         <ViroPolyline

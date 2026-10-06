@@ -9,6 +9,7 @@ export const demoCheckpoints: VenueCheckpointDefinition[] = [
     qrValue:'SEATNAV:demo-stadium:cp-gate-a',
     venuePosition:{x:4,y:0,z:6},
     markerWidthMeters:0.2,
+    venueYawDeg:0,
   },
   {
     id:'cp-east-concourse',
@@ -18,6 +19,7 @@ export const demoCheckpoints: VenueCheckpointDefinition[] = [
     qrValue:'SEATNAV:demo-stadium:cp-east-concourse',
     venuePosition:{x:41,y:0,z:20},
     markerWidthMeters:0.2,
+    venueYawDeg:0,
   },
   {
     id:'cp-section-104',
@@ -27,6 +29,7 @@ export const demoCheckpoints: VenueCheckpointDefinition[] = [
     qrValue:'SEATNAV:demo-stadium:cp-section-104',
     venuePosition:{x:58,y:3.2,z:43},
     markerWidthMeters:0.2,
+    venueYawDeg:0,
   },
 ];
 
