@@ -66,6 +66,27 @@ const server=http.createServer(async(req,res)=>{
       }
     }
 
+    if(req.method==='GET'&&url.pathname==='/metrics'){
+      if(!bearerMatches(req.headers.authorization,adminToken)){
+        return json(res,401,{error:'unauthorized',requestId:id});
+      }
+      const memory=process.memoryUsage();
+      return json(res,200,{
+        service:'goar-api',
+        timestamp:new Date().toISOString(),
+        uptimeSeconds:Math.round(process.uptime()),
+        nodeVersion:process.version,
+        pid:process.pid,
+        storage:process.env.DATABASE_URL?'postgres':'file',
+        memory:{
+          rssBytes:memory.rss,
+          heapUsedBytes:memory.heapUsed,
+          heapTotalBytes:memory.heapTotal,
+        },
+        requestId:id,
+      });
+    }
+
     const ticketMatch=url.pathname.match(/^\/tickets\/([^/]+)$/);
     if(req.method==='GET'&&ticketMatch){
       const ticket=await store.getTicket(safeId(ticketMatch[1]));
