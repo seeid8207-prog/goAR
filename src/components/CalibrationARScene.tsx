@@ -16,7 +16,7 @@ type Props = {
   };
 };
 
-export default function CalibrationARScene({ sceneNavigator }: Props) {
+export default function CalibrationARScene({ sceneNavigator }: Props = {}) {
   const label = sceneNavigator?.viroAppProps?.label ?? 'CALIBRATE';
 
   return (
