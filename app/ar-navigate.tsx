@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import RouteARScene from '../src/components/RouteARScene';
 import { DEMO_VENUE, checkpoint, edges, points, seatTarget } from '../src/data/demoVenue';
+import { demoCheckpoints } from '../src/data/checkpoints';
 import { projectARRouteToWorld, type WorldARRouteOverlay } from '../src/lib/arRouteWorld';
 import { NavigationSession } from '../src/lib/navigationSession';
 import { updateNavigationFromCamera } from '../src/lib/navigationRuntime';
@@ -13,8 +14,10 @@ import { loadNavigationPreferences } from '../src/lib/preferences';
 import { track } from '../src/lib/telemetry';
 import { appendDiagnosticSample, createDiagnosticSession } from '../src/lib/diagnostics';
 import { saveDiagnosticSession } from '../src/lib/diagnosticsStore';
+import { CheckpointRuntime } from '../src/lib/checkpointRuntime';
 import type { PersistentReferenceFrame } from '../src/types/arMapping';
 import type { DiagnosticSession } from '../src/types/diagnostics';
+import type { ObservedCheckpointPose } from '../src/types/checkpoints';
 
 const EMPTY_OVERLAY: WorldARRouteOverlay = {
   instruction:'Localizing route…',nextWaypoint:null,waypoints:[],distanceToNextWaypointMeters:0,
@@ -26,8 +29,13 @@ export default function ARNavigateScreen(){
   const [tracking,setTracking]=useState('initializing');
   const [overlay,setOverlay]=useState<WorldARRouteOverlay>(EMPTY_OVERLAY);
   const [rerouteCount,setRerouteCount]=useState(0);
+  const [correctionCount,setCorrectionCount]=useState(0);
+  const [lastCorrection,setLastCorrection]=useState<string>('none');
   const [floor,setFloor]=useState(checkpoint.floor);
   const [stepFree,setStepFree]=useState(false);
+
+  const frameRef=useRef<PersistentReferenceFrame|null>(null);
+  const correctionRuntimeRef=useRef<CheckpointRuntime|null>(null);
   const floorRef=useRef(checkpoint.floor);
   const lastUpdateAt=useRef(0);
   const lastDiagnosticAt=useRef(0);
@@ -41,15 +49,50 @@ export default function ARNavigateScreen(){
   useEffect(()=>{
     session.start(checkpoint.id);
     track({name:'route_started',venueId:DEMO_VENUE.id,destinationId:seatTarget.id});
-    loadReferenceFrame(DEMO_VENUE.id).then(setFrame);
+    loadReferenceFrame(DEMO_VENUE.id).then((loaded)=>{
+      setFrame(loaded);
+      frameRef.current=loaded;
+      correctionRuntimeRef.current=loaded
+        ? new CheckpointRuntime(loaded,demoCheckpoints,5000)
+        : null;
+    });
     return ()=>{
       diagnosticsRef.current={...diagnosticsRef.current,endedAt:new Date().toISOString()};
       void saveDiagnosticSession(diagnosticsRef.current);
     };
   },[session]);
+
   useEffect(()=>{loadNavigationPreferences().then((p)=>setStepFree(p.stepFree));},[]);
 
   const switchFloor=(nextFloor:number)=>{floorRef.current=nextFloor;setFloor(nextFloor);};
+
+  const handleCheckpointObserved=async(observation:ObservedCheckpointPose)=>{
+    const runtime=correctionRuntimeRef.current;
+    if(!runtime)return;
+
+    const result=await runtime.observe(observation,Date.now());
+    if(!result.applied||!result.correction)return;
+
+    frameRef.current=result.frame;
+    setFrame(result.frame);
+    setCorrectionCount((count)=>count+1);
+    setLastCorrection(`${result.correction.checkpointId} · ${result.correction.driftMeters.toFixed(2)} m`);
+
+    const definition=demoCheckpoints.find((item)=>item.id===observation.checkpointId);
+    if(definition&&definition.floor!==floorRef.current){
+      floorRef.current=definition.floor;
+      setFloor(definition.floor);
+    }
+
+    track({
+      name:'checkpoint_corrected',
+      venueId:DEMO_VENUE.id,
+      checkpointId:observation.checkpointId,
+      driftMeters:result.correction.driftMeters,
+      confidence:observation.confidence,
+    });
+  };
+
   const requestedFloor=overlay.nextWaypoint?.floor;
   const needsFloorConfirmation=requestedFloor!=null&&requestedFloor!==floor&&(overlay.nextWaypoint?.kind==='lift'||overlay.nextWaypoint?.kind==='stairs');
 
@@ -61,12 +104,23 @@ export default function ARNavigateScreen(){
 
   return <View style={styles.root}>
     <ViroARSceneNavigator autofocus initialScene={{scene:RouteARScene}} viroAppProps={{
-      waypoints:overlay.waypoints,onTrackingState:setTracking,
+      waypoints:overlay.waypoints,
+      onTrackingState:setTracking,
+      onCheckpointObserved:handleCheckpointObserved,
       onCameraTransform:(transform:any)=>{
-        const now=Date.now();if(now-lastUpdateAt.current<120)return;lastUpdateAt.current=now;
+        const activeFrame=frameRef.current;
+        if(!activeFrame)return;
+
+        const now=Date.now();
+        if(now-lastUpdateAt.current<120)return;
+        lastUpdateAt.current=now;
+
         const [x,y,z]=transform.position;
-        const update=updateNavigationFromCamera(session,{x,y,z},floorRef.current,frame,now);
-        const worldOverlay=projectARRouteToWorld(update.overlay,(position)=>venueToWorld(position,frame));
+        const update=updateNavigationFromCamera(session,{x,y,z},floorRef.current,activeFrame,now);
+        const worldOverlay=projectARRouteToWorld(
+          update.overlay,
+          (position)=>venueToWorld(position,activeFrame),
+        );
         setOverlay(worldOverlay);
 
         if(update.rerouted){
@@ -78,10 +132,10 @@ export default function ARNavigateScreen(){
 
         if(now-lastDiagnosticAt.current>=500){
           lastDiagnosticAt.current=now;
-          const venue=worldToVenue({x,y,z},frame);
+          const venue=worldToVenue({x,y,z},activeFrame);
           diagnosticsRef.current=appendDiagnosticSample(diagnosticsRef.current,{
             venueId:DEMO_VENUE.id,
-            checkpointId:frame.checkpointId,
+            checkpointId:activeFrame.checkpointId,
             floor:floorRef.current,
             world:{x,y,z},
             venue,
@@ -106,7 +160,11 @@ export default function ARNavigateScreen(){
     <SafeAreaView style={styles.overlay} pointerEvents="box-none">
       <View style={styles.topbar}>
         <TouchableOpacity style={styles.circle} onPress={()=>router.back()}><Text style={styles.back}>‹</Text></TouchableOpacity>
-        <View style={styles.badge}><Text style={styles.badgeTitle}>GOAR · LEVEL {floor}{stepFree?' · STEP-FREE':''}</Text><Text style={styles.badgeSub}>{tracking} · reroutes {rerouteCount} · diagnostics on</Text></View>
+        <View style={styles.badge}>
+          <Text style={styles.badgeTitle}>GOAR · LEVEL {floor}{stepFree?' · STEP-FREE':''}</Text>
+          <Text style={styles.badgeSub}>{tracking} · reroutes {rerouteCount} · corrections {correctionCount}</Text>
+          <Text style={styles.badgeSub}>last correction: {lastCorrection}</Text>
+        </View>
       </View>
       <View>
         {needsFloorConfirmation&&requestedFloor!=null&&<View style={styles.floorCard}>
