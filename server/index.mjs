@@ -1,6 +1,7 @@
 import http from 'node:http';
 import { createFileStore } from './fileStore.mjs';
 import { createPostgresStore } from './postgresStore.mjs';
+import { saveDiagnosticFile } from './diagnosticsStore.mjs';
 
 const port=Number(process.env.PORT||8787);
 const adminToken=process.env.GOAR_ADMIN_TOKEN||'dev-admin-token';
@@ -57,6 +58,21 @@ const server=http.createServer(async(req,res)=>{
       if(!body?.name)return json(res,400,{error:'invalid_event'});
       await store.recordNavigationEvent(body);
       return json(res,202,{accepted:true});
+    }
+
+    if(req.method==='POST'&&url.pathname==='/diagnostics'){
+      const body=await readBody(req);
+      if(!body?.id||!body?.venueId||!Array.isArray(body?.samples)){
+        return json(res,400,{error:'invalid_diagnostic_session'});
+      }
+      const saved=await saveDiagnosticFile(body);
+      await store.recordNavigationEvent({
+        name:'diagnostic_session',
+        venueId:body.venueId,
+        sessionId:body.id,
+        samples:saved.samples,
+      });
+      return json(res,202,{accepted:true,...saved});
     }
 
     return json(res,404,{error:'not_found'});

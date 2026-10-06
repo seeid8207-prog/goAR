@@ -12,6 +12,7 @@ import { venueToWorld, worldToVenue } from '../src/lib/referenceFrame';
 import { loadReferenceFrame } from '../src/lib/referenceFrameStore';
 import { loadNavigationPreferences } from '../src/lib/preferences';
 import { track } from '../src/lib/telemetry';
+import { flushTelemetry, uploadDiagnosticSession } from '../src/lib/telemetryClient';
 import { appendDiagnosticSample, createDiagnosticSession } from '../src/lib/diagnostics';
 import { saveDiagnosticSession } from '../src/lib/diagnosticsStore';
 import { CheckpointRuntime } from '../src/lib/checkpointRuntime';
@@ -151,7 +152,9 @@ export default function ARNavigateScreen(){
         if(worldOverlay.hasArrived){
           diagnosticsRef.current={...diagnosticsRef.current,endedAt:new Date().toISOString()};
           void saveDiagnosticSession(diagnosticsRef.current);
+          void uploadDiagnosticSession(diagnosticsRef.current).catch(()=>{});
           track({name:'arrived',venueId:DEMO_VENUE.id,destinationId:seatTarget.id});
+          void flushTelemetry().catch(()=>{});
           router.replace('/arrived');
         }
       }
