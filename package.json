@@ -16,7 +16,8 @@
     "release:check": "node scripts/validate-release.mjs",
     "eas-build-post-install": "node scripts/eas-post-install.mjs",
     "retention:cleanup": "node scripts/cleanup-retention.mjs",
-    "test:server": "node server/security.test.mjs"
+    "test:server": "node server/security.test.mjs",
+    "test:api": "node server/smoke.test.mjs"
   },
   "dependencies": {
     "expo": "~57.0.17",
