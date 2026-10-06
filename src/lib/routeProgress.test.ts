@@ -145,6 +145,17 @@ const correction=correctFrameFromCheckpoint(baseFrame,checkpointDef,{
 assertEqual(Math.abs(correction.driftMeters-.5)<1e-6,true,'checkpoint drift amount');
 assertEqual(shouldApplyCorrection(correction),true,'checkpoint correction accepted');
 
+const yawCorrection=correctFrameFromCheckpoint(baseFrame,{...checkpointDef,venueYawDeg:0},{
+  checkpointId:'cp-test',
+  worldPosition:{x:12,y:0,z:10},
+  worldRotation:{x:0,y:15,z:0},
+  confidence:1,
+  observedAt:new Date().toISOString()
+},1);
+assertEqual(Math.abs(yawCorrection.yawDriftDeg-15)<1e-6,true,'checkpoint yaw drift amount');
+assertEqual(shouldApplyCorrection(yawCorrection),true,'yaw-only correction accepted');
+assertEqual(Math.abs(yawCorrection.frame.xAxis.z)>0.1,true,'frame axis rotates after yaw correction');
+
 const noisy=correctFrameFromCheckpoint(baseFrame,checkpointDef,{
   checkpointId:'cp-test',worldPosition:{x:12.03,y:0,z:10},confidence:.4,observedAt:new Date().toISOString()
 },1);
