@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": ".navtest-build",
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/types/navigation.ts",
+    "src/types/arNavigation.ts",
+    "src/lib/venueMath.ts",
+    "src/lib/routeGraph.ts",
+    "src/lib/routeProgress.ts",
+    "src/lib/reroute.ts",
+    "src/lib/arRoute.ts",
+    "src/lib/navigationSession.ts",
+    "src/lib/routeProgress.test.ts",
+    "src/types/arMapping.ts",
+    "src/lib/calibration.ts",
+    "src/lib/referenceFrame.ts",
+    "src/types/venueMapping.ts",
+    "src/types/domain.ts",
+    "src/lib/seatGenerator.ts",
+    "src/lib/ticketResolver.ts",
+    "src/lib/accessControl.ts"
+  ]
+}

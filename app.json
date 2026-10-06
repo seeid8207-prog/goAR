@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "GoAR",
+    "slug": "goar",
+    "version": "0.12.0",
+    "scheme": "goar",
+    "orientation": "portrait",
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "GoAR uses the camera to scan venue checkpoints and provide AR seat navigation."
+        }
+      ],
+      [
+        "@reactvision/react-viro",
+        {
+          "android": {
+            "xRMode": "AR"
+          },
+          "ios": {
+            "cameraUsagePermission": "GoAR uses your camera for AR venue navigation.",
+            "microphoneUsagePermission": "GoAR may use the microphone for AR experiences.",
+            "photosPermission": "GoAR may access photos used by venue AR experiences.",
+            "savephotosPermission": "GoAR may save AR captures to your photo library."
+          }
+        }
+      ]
+    ],
+    "android": {
+      "package": "za.co.goar.app"
+    },
+    "ios": {
+      "bundleIdentifier": "za.co.goar.app"
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
