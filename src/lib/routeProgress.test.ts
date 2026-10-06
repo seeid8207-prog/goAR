@@ -8,6 +8,11 @@ import { buildARRouteOverlay } from './arRoute';
 import { NavigationSession } from './navigationSession';
 import { buildReferenceFrameFromThreePoints } from './calibration';
 import { venueToWorld, worldToVenue } from './referenceFrame';
+import { generateSeatRow } from './seatGenerator';
+import { resolveTicketToSeat } from './ticketResolver';
+import { can } from './accessControl';
+import type { SeatTarget } from '../types/navigation';
+import type { EventTicket } from '../types/domain';
 import type { RouteEdge, VenuePoint } from '../types/navigation';
 
 const points: VenuePoint[] = [
@@ -85,4 +90,25 @@ assertEqual(Math.abs(roundTrip.x - 12) < 1e-6, true, 'frame round trip x');
 assertEqual(Math.abs(roundTrip.y - 2) < 1e-6, true, 'frame round trip y');
 assertEqual(Math.abs(roundTrip.z - 1) < 1e-6, true, 'frame round trip z');
 
-console.log('route progress, AR overlay, and calibration tests passed');
+const generated = generateSeatRow({
+  venueId:'demo',floor:1,section:'104',row:'G',firstSeatNumber:1,seatCount:4,
+  start:{x:0,y:3,z:0},end:{x:3,y:3,z:0},
+});
+assertEqual(generated.length,4,'seat row count');
+assertEqual(generated[0].seat,'1','first generated seat');
+assertEqual(generated[3].seat,'4','last generated seat');
+assertEqual(generated[2].position.x,2,'seat interpolation');
+
+const ticket:EventTicket={
+  id:'t',eventId:'e',eventName:'Event',venueId:'demo',venueName:'Demo',
+  section:'104',row:'G',seat:'18'
+};
+const ticketSeat:SeatTarget={
+  id:'s',label:'Seat 18',x:0,y:0,floor:1,kind:'seat',section:'104',row:'G',seat:'18'
+};
+assertEqual(resolveTicketToSeat(ticket,[ticketSeat])?.id,'s','ticket resolves to mapped seat');
+assertEqual(can('attendee','map-venue'),false,'attendee cannot map venue');
+assertEqual(can('mapper','map-venue'),true,'mapper can map venue');
+assertEqual(can('venue-admin','publish-venue'),true,'admin can publish venue');
+
+console.log('GoAR core tests passed');
