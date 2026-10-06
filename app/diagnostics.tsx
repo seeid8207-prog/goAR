@@ -7,7 +7,7 @@ import type { DiagnosticSession } from '../src/types/diagnostics';
 export default function DiagnosticsScreen(){
   const [sessions,setSessions]=useState<DiagnosticSession[]>([]);
   const refresh=()=>loadDiagnosticSessions().then(setSessions);
-  useEffect(refresh,[]);
+  useEffect(()=>{ void refresh(); },[]);
 
   return <SafeAreaView style={styles.page}>
     <ScrollView contentContainerStyle={styles.content}>
