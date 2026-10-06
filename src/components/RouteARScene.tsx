@@ -44,7 +44,7 @@ function arrowLabel(kind: WorldARWaypoint['kind']) {
   }
 }
 
-export default function RouteARScene({ sceneNavigator }: SceneProps) {
+export default function RouteARScene({ sceneNavigator }: SceneProps = {}) {
   const waypoints = sceneNavigator?.viroAppProps?.waypoints ?? [];
   const linePoints = waypoints.map((waypoint) => [
     waypoint.worldPosition.x,
