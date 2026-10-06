@@ -24,6 +24,8 @@
     "src/types/domain.ts",
     "src/lib/seatGenerator.ts",
     "src/lib/ticketResolver.ts",
-    "src/lib/accessControl.ts"
+    "src/lib/accessControl.ts",
+    "src/types/diagnostics.ts",
+    "src/lib/diagnostics.ts"
   ]
 }
