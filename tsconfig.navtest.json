@@ -26,6 +26,10 @@
     "src/lib/ticketResolver.ts",
     "src/lib/accessControl.ts",
     "src/types/diagnostics.ts",
-    "src/lib/diagnostics.ts"
+    "src/lib/diagnostics.ts",
+    "src/types/checkpoints.ts",
+    "src/lib/frameCorrection.ts",
+    "src/lib/checkpointCorrectionSession.ts",
+    "src/lib/checkpointPayload.ts"
   ]
 }
