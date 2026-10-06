@@ -23,4 +23,5 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm run test:navigation
+      - run: npm run test:server
       - run: npm run typecheck
