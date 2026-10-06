@@ -29,6 +29,9 @@ export default function AdminScreen() {
         <TouchableOpacity style={styles.secondary} onPress={() => router.push('/diagnostics')}>
           <Text style={styles.secondaryText}>AR Field Diagnostics</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.secondary} onPress={() => router.push('/checkpoint-test')}>
+          <Text style={styles.secondaryText}>Checkpoint Drift Test</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
