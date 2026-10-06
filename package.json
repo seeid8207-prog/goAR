@@ -15,7 +15,8 @@
     "field:ios": "bash scripts/field-test-ios.sh",
     "release:check": "node scripts/validate-release.mjs",
     "eas-build-post-install": "node scripts/eas-post-install.mjs",
-    "retention:cleanup": "node scripts/cleanup-retention.mjs"
+    "retention:cleanup": "node scripts/cleanup-retention.mjs",
+    "test:server": "node server/security.test.mjs"
   },
   "dependencies": {
     "expo": "~57.0.17",
