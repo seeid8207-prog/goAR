@@ -36,7 +36,7 @@ type Props = {
   };
 };
 
-export default function VenueMapperARScene({ sceneNavigator }: Props) {
+export default function VenueMapperARScene({ sceneNavigator }: Props = {}) {
   const sceneRef=useRef<any>(null);
   const points=sceneNavigator?.viroAppProps?.points??[];
 
