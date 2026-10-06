@@ -36,3 +36,29 @@ Deployment health endpoints:
 Run `npm run retention:cleanup` on a scheduled production job.
 
 The API applies no-store/security headers, request IDs, per-IP rate limiting, JSON body-size limits and constant-time admin bearer-token verification.
+
+## Containerized API
+
+Build the API image:
+
+    docker build -t goar-api ./server
+
+Run it with file storage for a smoke test:
+
+    docker run --rm -p 8787:8787 \
+      -e GOAR_ADMIN_TOKEN=replace-me \
+      -e GOAR_ALLOWED_ORIGINS=https://app.example.com \
+      goar-api
+
+For production, also configure `DATABASE_URL` for PostgreSQL/PostGIS.
+
+Verify:
+
+    curl http://localhost:8787/health
+    curl http://localhost:8787/ready
+
+Run the end-to-end API smoke test from the repository root:
+
+    npm run test:api
+
+The smoke test launches the API with isolated file storage and verifies health/readiness, authenticated metrics, CORS, mapping write/read, demo ticket lookup, telemetry, diagnostics and request-size rejection.

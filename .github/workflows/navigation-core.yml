@@ -24,4 +24,7 @@ jobs:
       - run: npm install
       - run: npm run test:navigation
       - run: npm run test:server
+      - run: npm run test:api
+      - name: Build production API container
+        run: docker build -t goar-api-ci ./server
       - run: npm run typecheck
