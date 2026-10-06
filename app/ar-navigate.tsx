@@ -26,6 +26,7 @@ export default function ARNavigateScreen() {
   const [tracking, setTracking] = useState('initializing');
   const [overlay, setOverlay] = useState<WorldARRouteOverlay>(EMPTY_OVERLAY);
   const [rerouteCount, setRerouteCount] = useState(0);
+  const [floor, setFloor] = useState(checkpoint.floor);
   const floorRef = useRef(checkpoint.floor);
   const lastUpdateAt = useRef(0);
 
@@ -45,6 +46,17 @@ export default function ARNavigateScreen() {
     loadReferenceFrame(DEMO_VENUE.id).then(setFrame);
   }, [session]);
 
+  const switchFloor = (nextFloor: number) => {
+    floorRef.current = nextFloor;
+    setFloor(nextFloor);
+  };
+
+  const requestedFloor = overlay.nextWaypoint?.floor;
+  const needsFloorConfirmation =
+    requestedFloor != null &&
+    requestedFloor !== floor &&
+    (overlay.nextWaypoint?.kind === 'lift' || overlay.nextWaypoint?.kind === 'stairs');
+
   if (!frame) {
     return (
       <SafeAreaView style={styles.empty}>
@@ -52,8 +64,8 @@ export default function ARNavigateScreen() {
         <Text style={styles.emptyCopy}>
           Scan a GoAR venue checkpoint first so route coordinates can be aligned with the real venue.
         </Text>
-        <TouchableOpacity style={styles.primary} onPress={() => router.back()}>
-          <Text style={styles.primaryText}>Back to localization</Text>
+        <TouchableOpacity style={styles.primary} onPress={() => router.replace('/checkpoint')}>
+          <Text style={styles.primaryText}>Open checkpoint scanner</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -100,17 +112,31 @@ export default function ARNavigateScreen() {
             <Text style={styles.back}>‹</Text>
           </TouchableOpacity>
           <View style={styles.badge}>
-            <Text style={styles.badgeTitle}>GOAR NAVIGATION</Text>
+            <Text style={styles.badgeTitle}>GOAR NAVIGATION · LEVEL {floor}</Text>
             <Text style={styles.badgeSub}>{tracking} · reroutes {rerouteCount}</Text>
           </View>
         </View>
 
-        <View style={[styles.instruction, overlay.isOffRoute && styles.warning]}>
-          <Text style={styles.kicker}>{overlay.isOffRoute ? 'REROUTING' : 'NEXT'}</Text>
-          <Text style={styles.title}>{overlay.instruction}</Text>
-          <Text style={styles.copy}>
-            {overlay.distanceToNextWaypointMeters.toFixed(1)} m to next point · {overlay.remainingDistanceMeters.toFixed(1)} m remaining
-          </Text>
+        <View>
+          {needsFloorConfirmation && requestedFloor != null && (
+            <View style={styles.floorCard}>
+              <Text style={styles.floorKicker}>LEVEL CHANGE</Text>
+              <Text style={styles.floorTitle}>
+                Take the {overlay.nextWaypoint?.kind === 'lift' ? 'lift' : 'stairs'} to Level {requestedFloor}
+              </Text>
+              <TouchableOpacity style={styles.floorButton} onPress={() => switchFloor(requestedFloor)}>
+                <Text style={styles.floorButtonText}>I'm on Level {requestedFloor}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View style={[styles.instruction, overlay.isOffRoute && styles.warning]}>
+            <Text style={styles.kicker}>{overlay.isOffRoute ? 'REROUTING' : 'NEXT'}</Text>
+            <Text style={styles.title}>{overlay.instruction}</Text>
+            <Text style={styles.copy}>
+              {overlay.distanceToNextWaypointMeters.toFixed(1)} m to next point · {overlay.remainingDistanceMeters.toFixed(1)} m remaining
+            </Text>
+          </View>
         </View>
       </SafeAreaView>
     </View>
@@ -131,6 +157,11 @@ const styles = StyleSheet.create({
   kicker: { color: '#fff', opacity: 0.55, fontSize: 10, fontWeight: '900', letterSpacing: 1.2 },
   title: { color: '#fff', fontSize: 23, fontWeight: '900', marginTop: 5 },
   copy: { color: '#fff', opacity: 0.7, marginTop: 7 },
+  floorCard: { marginBottom: 10, backgroundColor: '#fff', borderRadius: 20, padding: 16 },
+  floorKicker: { fontSize: 10, fontWeight: '900', opacity: .42, letterSpacing: 1.1 },
+  floorTitle: { fontSize: 19, fontWeight: '900', marginTop: 4 },
+  floorButton: { marginTop: 12, backgroundColor: '#111', padding: 13, borderRadius: 13, alignItems: 'center' },
+  floorButtonText: { color: '#fff', fontWeight: '900' },
   empty: { flex: 1, backgroundColor: '#f7f8f5', padding: 24, justifyContent: 'center' },
   emptyTitle: { fontSize: 30, fontWeight: '900' },
   emptyCopy: { marginTop: 10, marginBottom: 20, fontSize: 15, lineHeight: 22, opacity: 0.6 },
