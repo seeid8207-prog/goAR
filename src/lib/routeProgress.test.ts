@@ -12,6 +12,10 @@ import { generateSeatRow } from './seatGenerator';
 import { resolveTicketToSeat } from './ticketResolver';
 import { can } from './accessControl';
 import { appendDiagnosticSample, createDiagnosticSession, summarizeDiagnosticSession } from './diagnostics';
+import { correctFrameFromCheckpoint, shouldApplyCorrection } from './frameCorrection';
+import { CheckpointCorrectionSession } from './checkpointCorrectionSession';
+import { parseCheckpointPayload } from './checkpointPayload';
+import type { VenueCheckpointDefinition } from '../types/checkpoints';
 import type { SeatTarget } from '../types/navigation';
 import type { EventTicket } from '../types/domain';
 import type { RouteEdge, VenuePoint } from '../types/navigation';
@@ -126,5 +130,36 @@ assertEqual(diagnosticSummary.samples,2,'diagnostic sample count');
 assertEqual(diagnosticSummary.meanDistanceToRouteMeters,2,'diagnostic mean deviation');
 assertEqual(diagnosticSummary.maxDistanceToRouteMeters,3,'diagnostic max deviation');
 assertEqual(diagnosticSummary.reroutes,1,'diagnostic reroute count');
+
+const checkpointDef:VenueCheckpointDefinition={
+  id:'cp-test',venueId:'demo',label:'Test',floor:0,
+  qrValue:'SEATNAV:demo:cp-test',venuePosition:{x:2,y:0,z:0},markerWidthMeters:.2
+};
+const baseFrame=buildReferenceFrameFromThreePoints({
+  venueId:'demo',checkpointId:'origin',
+  origin:{x:10,y:0,z:10},positiveX:{x:11,y:0,z:10},positiveZ:{x:10,y:0,z:11}
+});
+const correction=correctFrameFromCheckpoint(baseFrame,checkpointDef,{
+  checkpointId:'cp-test',worldPosition:{x:12.5,y:0,z:10},confidence:1,observedAt:new Date().toISOString()
+},1);
+assertEqual(Math.abs(correction.driftMeters-.5)<1e-6,true,'checkpoint drift amount');
+assertEqual(shouldApplyCorrection(correction),true,'checkpoint correction accepted');
+
+const noisy=correctFrameFromCheckpoint(baseFrame,checkpointDef,{
+  checkpointId:'cp-test',worldPosition:{x:12.03,y:0,z:10},confidence:.4,observedAt:new Date().toISOString()
+},1);
+assertEqual(shouldApplyCorrection(noisy),false,'low-confidence correction rejected');
+
+const correctionSession=new CheckpointCorrectionSession(baseFrame,[checkpointDef],1000);
+const correctionResult=correctionSession.observe({
+  checkpointId:'cp-test',worldPosition:{x:12.5,y:0,z:10},confidence:1,observedAt:new Date().toISOString()
+},2000);
+assertEqual(correctionResult.applied,true,'correction session applies drift fix');
+const cooldownResult=correctionSession.observe({
+  checkpointId:'cp-test',worldPosition:{x:12.6,y:0,z:10},confidence:1,observedAt:new Date().toISOString()
+},2500);
+assertEqual(cooldownResult.applied,false,'correction cooldown');
+
+assertEqual(parseCheckpointPayload('SEATNAV:demo:cp-test')?.checkpointId,'cp-test','checkpoint payload parsing');
 
 console.log('GoAR core tests passed');
