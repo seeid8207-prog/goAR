@@ -7,11 +7,14 @@ import { DEMO_VENUE, checkpoint, edges, points, seatTarget } from '../src/data/d
 import { projectARRouteToWorld, type WorldARRouteOverlay } from '../src/lib/arRouteWorld';
 import { NavigationSession } from '../src/lib/navigationSession';
 import { updateNavigationFromCamera } from '../src/lib/navigationRuntime';
-import { venueToWorld } from '../src/lib/referenceFrame';
+import { venueToWorld, worldToVenue } from '../src/lib/referenceFrame';
 import { loadReferenceFrame } from '../src/lib/referenceFrameStore';
 import { loadNavigationPreferences } from '../src/lib/preferences';
 import { track } from '../src/lib/telemetry';
+import { appendDiagnosticSample, createDiagnosticSession } from '../src/lib/diagnostics';
+import { saveDiagnosticSession } from '../src/lib/diagnosticsStore';
 import type { PersistentReferenceFrame } from '../src/types/arMapping';
+import type { DiagnosticSession } from '../src/types/diagnostics';
 
 const EMPTY_OVERLAY: WorldARRouteOverlay = {
   instruction:'Localizing route…',nextWaypoint:null,waypoints:[],distanceToNextWaypointMeters:0,
@@ -27,6 +30,9 @@ export default function ARNavigateScreen(){
   const [stepFree,setStepFree]=useState(false);
   const floorRef=useRef(checkpoint.floor);
   const lastUpdateAt=useRef(0);
+  const lastDiagnosticAt=useRef(0);
+  const diagnosticsRef=useRef<DiagnosticSession>(createDiagnosticSession(DEMO_VENUE.id));
+  const rerouteRef=useRef(0);
 
   const session=useMemo(()=>new NavigationSession(points,edges,seatTarget.id,{accessibleOnly:stepFree},{
     waypointRadiusMeters:1.8,arrivalRadiusMeters:1.4,offRouteThresholdMeters:4,rerouteCooldownMs:3000,
@@ -36,6 +42,10 @@ export default function ARNavigateScreen(){
     session.start(checkpoint.id);
     track({name:'route_started',venueId:DEMO_VENUE.id,destinationId:seatTarget.id});
     loadReferenceFrame(DEMO_VENUE.id).then(setFrame);
+    return ()=>{
+      diagnosticsRef.current={...diagnosticsRef.current,endedAt:new Date().toISOString()};
+      void saveDiagnosticSession(diagnosticsRef.current);
+    };
   },[session]);
   useEffect(()=>{loadNavigationPreferences().then((p)=>setStepFree(p.stepFree));},[]);
 
@@ -58,15 +68,45 @@ export default function ARNavigateScreen(){
         const update=updateNavigationFromCamera(session,{x,y,z},floorRef.current,frame,now);
         const worldOverlay=projectARRouteToWorld(update.overlay,(position)=>venueToWorld(position,frame));
         setOverlay(worldOverlay);
-        if(update.rerouted){setRerouteCount((c)=>c+1);track({name:'reroute',venueId:DEMO_VENUE.id,distanceFromRoute:update.overlay.distanceToNextWaypointMeters});}
-        if(worldOverlay.hasArrived){track({name:'arrived',venueId:DEMO_VENUE.id,destinationId:seatTarget.id});router.replace('/arrived');}
+
+        if(update.rerouted){
+          const next=rerouteRef.current+1;
+          rerouteRef.current=next;
+          setRerouteCount(next);
+          track({name:'reroute',venueId:DEMO_VENUE.id,distanceFromRoute:update.overlay.distanceToNextWaypointMeters});
+        }
+
+        if(now-lastDiagnosticAt.current>=500){
+          lastDiagnosticAt.current=now;
+          const venue=worldToVenue({x,y,z},frame);
+          diagnosticsRef.current=appendDiagnosticSample(diagnosticsRef.current,{
+            venueId:DEMO_VENUE.id,
+            checkpointId:frame.checkpointId,
+            floor:floorRef.current,
+            world:{x,y,z},
+            venue,
+            trackingState:tracking,
+            distanceToRouteMeters:update.overlay.isOffRoute?update.overlay.distanceToNextWaypointMeters:0,
+            distanceToNextWaypointMeters:update.overlay.distanceToNextWaypointMeters,
+            remainingDistanceMeters:update.overlay.remainingDistanceMeters,
+            rerouteCount:rerouteRef.current,
+          });
+          void saveDiagnosticSession(diagnosticsRef.current);
+        }
+
+        if(worldOverlay.hasArrived){
+          diagnosticsRef.current={...diagnosticsRef.current,endedAt:new Date().toISOString()};
+          void saveDiagnosticSession(diagnosticsRef.current);
+          track({name:'arrived',venueId:DEMO_VENUE.id,destinationId:seatTarget.id});
+          router.replace('/arrived');
+        }
       }
     }} style={StyleSheet.absoluteFill}/>
 
     <SafeAreaView style={styles.overlay} pointerEvents="box-none">
       <View style={styles.topbar}>
         <TouchableOpacity style={styles.circle} onPress={()=>router.back()}><Text style={styles.back}>‹</Text></TouchableOpacity>
-        <View style={styles.badge}><Text style={styles.badgeTitle}>GOAR · LEVEL {floor}{stepFree?' · STEP-FREE':''}</Text><Text style={styles.badgeSub}>{tracking} · reroutes {rerouteCount}</Text></View>
+        <View style={styles.badge}><Text style={styles.badgeTitle}>GOAR · LEVEL {floor}{stepFree?' · STEP-FREE':''}</Text><Text style={styles.badgeSub}>{tracking} · reroutes {rerouteCount} · diagnostics on</Text></View>
       </View>
       <View>
         {needsFloorConfirmation&&requestedFloor!=null&&<View style={styles.floorCard}>
