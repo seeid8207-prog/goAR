@@ -32,6 +32,9 @@ export default function AdminScreen() {
         <TouchableOpacity style={styles.secondary} onPress={() => router.push('/checkpoint-test')}>
           <Text style={styles.secondaryText}>Checkpoint Drift Test</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.secondary} onPress={() => router.push('/offline')}>
+          <Text style={styles.secondaryText}>Offline Venue Package</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );

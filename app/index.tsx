@@ -34,6 +34,9 @@ export default function HomeScreen() {
         <TouchableOpacity style={styles.primary} onPress={() => router.push('/checkpoint')}>
           <Text style={styles.primaryText}>Find my seat</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.admin} onPress={() => router.push('/offline')}>
+          <Text style={styles.adminText}>Download venue for offline use</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.admin} onPress={() => router.push('/admin')}>
           <Text style={styles.adminText}>Venue admin</Text>
         </TouchableOpacity>
