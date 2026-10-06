@@ -15,6 +15,7 @@ const safeId=(value)=>String(value||'').replace(/[^a-zA-Z0-9_-]/g,'');
 
 export function createFileStore(){
   return {
+    async ping(){return true;},
     async getTicket(id){return id===demoTicket.id?demoTicket:null;},
     async getMapping(venueId){
       try{return JSON.parse(await readFile(join(dataRoot,`${safeId(venueId)}-mapping.json`),'utf8'));}
