@@ -24,4 +24,5 @@ jobs:
       - run: npm install
       - run: npm run test:navigation
       - run: npm run test:server
+      - run: npm run test:api
       - run: npm run typecheck
