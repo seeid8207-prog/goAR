@@ -9,11 +9,19 @@ import {
 } from '@reactvision/react-viro';
 import type { WorldARWaypoint } from '../lib/arRouteWorld';
 
+type CameraTransform = {
+  position: [number, number, number];
+  rotation: [number, number, number];
+  forward: [number, number, number];
+  up: [number, number, number];
+};
+
 type SceneProps = {
   sceneNavigator?: {
     viroAppProps?: {
       waypoints?: WorldARWaypoint[];
       onTrackingState?: (state: string) => void;
+      onCameraTransform?: (transform: CameraTransform) => void;
     };
   };
 };
@@ -46,6 +54,11 @@ export default function RouteARScene({ sceneNavigator }: SceneProps) {
       onTrackingUpdated={(state: any) =>
         sceneNavigator?.viroAppProps?.onTrackingState?.(String(state))
       }
+      onCameraTransformUpdate={(event: any) => {
+        const transform = event?.cameraTransform;
+        if (!transform?.position) return;
+        sceneNavigator?.viroAppProps?.onCameraTransform?.(transform as CameraTransform);
+      }}
     >
       <ViroAmbientLight color="#ffffff" intensity={350} />
 
