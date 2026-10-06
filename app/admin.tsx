@@ -26,6 +26,9 @@ export default function AdminScreen() {
         <TouchableOpacity style={styles.secondary} onPress={() => router.push('/seat-row-builder')}>
           <Text style={styles.secondaryText}>Generate Seat Row</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.secondary} onPress={() => router.push('/diagnostics')}>
+          <Text style={styles.secondaryText}>AR Field Diagnostics</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
