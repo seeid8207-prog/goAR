@@ -12,7 +12,9 @@
     "api": "node server/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "field:android": "bash scripts/field-test-android.sh",
-    "field:ios": "bash scripts/field-test-ios.sh"
+    "field:ios": "bash scripts/field-test-ios.sh",
+    "release:check": "node scripts/validate-release.mjs",
+    "eas-build-post-install": "node scripts/eas-post-install.mjs"
   },
   "dependencies": {
     "expo": "~57.0.17",
