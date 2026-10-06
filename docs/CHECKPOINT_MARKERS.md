@@ -1,30 +1,18 @@
 # Printable checkpoint markers
 
-For the current field-test build, GoAR registers three 20 cm image targets. Print each marker at **20 cm wide** without scaling the artwork differently.
+GoAR bundles three field-test image targets directly inside the mobile app, so checkpoint recognition continues to work with no network connection.
 
-## Gate A
+Print each file at **20 cm wide** without rescaling the artwork differently:
 
-Payload: `SEATNAV:demo-stadium:cp-gate-a`
+- `assets/checkpoints/gate-a.png`
+- `assets/checkpoints/east-concourse.png`
+- `assets/checkpoints/section-104.png`
 
-Image URL:
+Their payload identities are:
 
-`https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=24&data=SEATNAV%3Ademo-stadium%3Acp-gate-a`
-
-## East Concourse
-
-Payload: `SEATNAV:demo-stadium:cp-east-concourse`
-
-Image URL:
-
-`https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=24&data=SEATNAV%3Ademo-stadium%3Acp-east-concourse`
-
-## Section 104
-
-Payload: `SEATNAV:demo-stadium:cp-section-104`
-
-Image URL:
-
-`https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=24&data=SEATNAV%3Ademo-stadium%3Acp-section-104`
+- Gate A: `SEATNAV:demo-stadium:cp-gate-a`
+- East Concourse: `SEATNAV:demo-stadium:cp-east-concourse`
+- Section 104: `SEATNAV:demo-stadium:cp-section-104`
 
 ## Field-test placement
 
@@ -33,5 +21,6 @@ Image URL:
 - Keep them well lit.
 - Measure and record each marker's venue XYZ position.
 - Keep marker orientation consistent with the venue coordinate system.
+- Print at the configured physical width because Viro uses that width for tracking scale.
 
-The QR image provider above is suitable for the demo/field-test path. Production venues should host immutable marker assets in GoAR-controlled object storage and version them with the venue map.
+Production venues should version marker assets with the published venue map so a checkpoint image, its physical width, and its venue-space pose always change together.
