@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "test:navigation": "tsc -p tsconfig.navtest.json && node .navtest-build/lib/routeProgress.test.js",
     "api": "node server/index.mjs",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "field:android": "bash scripts/field-test-android.sh"
   },
   "dependencies": {
     "expo": "~57.0.17",
